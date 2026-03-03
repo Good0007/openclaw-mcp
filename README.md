@@ -153,60 +153,52 @@ npm run build # 编译为 dist/index.cjs
 
 正常现象。MCP 协议规定 stdout 专用于 JSON-RPC，所有状态日志必须写 stderr，宿主会统一标记为 `[server stderr]`。
 
-## License
+## 发布为 npx 应用
 
-[MIT](./LICENSE) © OpenClaw Contributors
+本包已完整配置 `bin` 入口与单文件 CJS bundle，发布后用户无需安装即可直接通过 `npx` 使用。
 
-- OpenClaw Gateway 已在本地运行（默认 `ws://127.0.0.1:18789`）
-- Node.js 22+
-- 已执行 `npm install` 安装依赖
-
-## 安装
+### 1. 发布到 npm
 
 ```bash
-cd mcp-server
-npm install
-npm run build
+# 首次登录
+npm login
+
+# 构建并发布（已在 prepublishOnly 中自动执行 build）
+npm run release
+# 等价于：npm publish --access public
 ```
 
-## 环境变量
+### 2. 用户通过 npx 使用
 
-| 变量 | 默认值 | 说明 |
-|---|---|---|
-| `OPENCLAW_URL` | `ws://127.0.0.1:18789` | Gateway WebSocket 地址 |
-| `OPENCLAW_TOKEN` | — | auth token（对应 `gateway.auth.token`） |
-| `OPENCLAW_PASSWORD` | — | auth password（对应 `gateway.auth.password`） |
-| `OPENCLAW_SESSION` | `default` | 默认会话 key |
+发布成功后，所有 MCP 宿主配置中的 `node /path/to/dist/index.cjs` 均可替换为 `npx`，无需本地克隆仓库：
 
-## 在 Claude Desktop 中配置
-
-编辑 `~/Library/Application Support/Claude/claude_desktop_config.json`（macOS）：
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
     "openclaw": {
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_URL": "ws://127.0.0.1:18789",
-        "OPENCLAW_TOKEN": "your-gateway-token"
+        "OPENCLAW_TOKEN": "your-gateway-token",
+        "OPENCLAW_SESSION": "agent:xiaozhi",
+        "OPENCLAW_AGENT_NAME": "小龙虾"
       }
     }
   }
 }
 ```
 
-## 在 Cursor 中配置
-
-编辑 `~/.cursor/mcp.json`（或通过 Cursor Settings → MCP）：
+**Cursor** (`~/.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
     "openclaw": {
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_TOKEN": "your-token"
       }
@@ -215,17 +207,15 @@ npm run build
 }
 ```
 
-## 在 VS Code Copilot Chat 中配置
-
-编辑 `.vscode/mcp.json`（工作区级）或 `settings.json`（用户级）：
+**VS Code Copilot Chat** (`.vscode/mcp.json`):
 
 ```json
 {
   "servers": {
     "openclaw": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_TOKEN": "your-token"
       }
@@ -234,51 +224,14 @@ npm run build
 }
 ```
 
-## 开发模式（无需编译）
+> `-y` 表示首次运行时自动安装，后续调用直接使用缓存，无额外开销。
 
-```bash
-cd mcp-server
-npm install
-npm run dev
+### 3. 固定版本（推荐生产使用）
+
+```json
+"args": ["-y", "openclaw-mcp-server@1.0.0"]
 ```
 
-## 可用工具
+## License
 
-| 工具 | 说明 |
-|---|---|
-| `chat_send` | 向 AI agent 发送消息，等待完整回复（内部自动处理流式） |
-| `chat_history` | 获取会话历史记录 |
-| `chat_abort` | 中止当前正在运行的 AI 回复 |
-| `send_message` | 通过指定渠道（Telegram / Discord / Slack 等）发送消息 |
-| `channels_status` | 检查所有渠道连接状态 |
-| `health` | 获取 Gateway 健康状态 |
-| `sessions_list` | 列出所有会话 |
-| `session_reset` | 清空会话历史（需要 `confirm=true`） |
-| `agents_list` | 列出所有 AI agents |
-| `config_get` | 读取配置项 |
-| `config_set` | 写入配置项 |
-| `models_list` | 列出可用 AI 模型 |
-
-## 查看本地 token
-
-```bash
-openclaw config get gateway.auth.token
-```
-
-## 常见问题
-
-**连接失败 / 认证错误**
-
-1. 确认 OpenClaw Gateway 正在运行：`openclaw channels status`
-2. 确认 token 正确：`openclaw config get gateway.auth.token`
-3. 确认端口无防火墙拦截（本地 loopback 无需担心）
-
-**wss:// 远程连接**
-
-若 Gateway 在远程机器，推荐使用 SSH 隧道：
-
-```bash
-ssh -N -L 18789:127.0.0.1:18789 user@gateway-host
-```
-
-然后 `OPENCLAW_URL=ws://127.0.0.1:18789` 即可。
+[MIT](./LICENSE) © OpenClaw Contributors

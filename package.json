@@ -5,7 +5,8 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "openclaw-mcp": "./dist/index.cjs"
+    "openclaw-mcp": "./dist/index.cjs",
+    "openclaw-mcp-server": "./dist/index.cjs"
   },
   "files": [
     "dist",
@@ -17,7 +18,8 @@
     "build:tsc": "tsc",
     "dev": "node --import tsx/esm src/index.ts",
     "start": "node dist/index.js",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release": "npm publish --access public --registry https://registry.npmjs.org"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
