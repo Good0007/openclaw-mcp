@@ -1,0 +1,34 @@
+{
+  "name": "openclaw-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for interacting with OpenClaw Gateway",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "openclaw-mcp": "./dist/index.cjs"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "build:tsc": "tsc",
+    "dev": "node --import tsx/esm src/index.ts",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.1",
+    "ws": "^8.18.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.14",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
