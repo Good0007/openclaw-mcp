@@ -14,16 +14,6 @@
 - Node.js 22+
 - [OpenClaw](https://openclaw.ai) Gateway 已在运行（本地默认 `ws://127.0.0.1:18789`，或远程 `wss://`）
 
-## 安装
-
-```bash
-cd mcp-server
-npm install
-npm run build
-```
-
-构建产物为 `dist/index.cjs`（单文件，已打包全部依赖）。
-
 ## 环境变量
 
 通过 MCP 宿主配置的 `env` 字段注入：
@@ -42,7 +32,11 @@ npm run build
 > openclaw config get gateway.auth.token
 > ```
 
-## 在 Claude Desktop 中配置
+## 快速开始（npx）
+
+无需克隆仓库，直接通过 `npx` 使用，首次运行自动安装，后续使用缓存。
+
+### 在 Claude Desktop 中配置
 
 编辑 `~/Library/Application Support/Claude/claude_desktop_config.json`（macOS）：
 
@@ -50,18 +44,20 @@ npm run build
 {
   "mcpServers": {
     "openclaw": {
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_URL": "ws://127.0.0.1:18789",
-        "OPENCLAW_TOKEN": "your-gateway-token"
+        "OPENCLAW_TOKEN": "your-gateway-token",
+        "OPENCLAW_SESSION": "agent:xiaozhi",
+        "OPENCLAW_AGENT_NAME": "小龙虾"
       }
     }
   }
 }
 ```
 
-## 在 Cursor 中配置
+### 在 Cursor 中配置
 
 编辑 `~/.cursor/mcp.json`（或通过 Cursor Settings → MCP）：
 
@@ -69,8 +65,8 @@ npm run build
 {
   "mcpServers": {
     "openclaw": {
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_TOKEN": "your-token"
       }
@@ -79,7 +75,7 @@ npm run build
 }
 ```
 
-## 在 VS Code Copilot Chat 中配置
+### 在 VS Code Copilot Chat 中配置
 
 编辑 `.vscode/mcp.json`（工作区级）或用户 `settings.json`（`mcp.servers`）：
 
@@ -88,14 +84,22 @@ npm run build
   "servers": {
     "openclaw": {
       "type": "stdio",
-      "command": "node",
-      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "command": "npx",
+      "args": ["-y", "openclaw-mcp-server"],
       "env": {
         "OPENCLAW_TOKEN": "your-token"
       }
     }
   }
 }
+```
+
+> `-y` 表示首次运行时自动安装，后续调用直接使用缓存，无额外开销。
+
+### 固定版本（推荐生产使用）
+
+```json
+"args": ["-y", "openclaw-mcp-server@1.0.0"]
 ```
 
 ## 远程 Gateway（wss://）
@@ -134,6 +138,76 @@ ssh -N -L 18789:127.0.0.1:18789 user@gateway-host
 | `config_set` | 写入 Gateway 配置项 |
 | `models_list` | 列出可用 AI 模型及当前激活的模型 |
 
+## 本地构建使用（node）
+
+如需从源码构建或二次开发，可本地安装后使用 `node` 直接运行。
+
+### 安装
+
+```bash
+cd mcp-server
+npm install
+npm run build
+```
+
+构建产物为 `dist/index.cjs`（单文件，已打包全部依赖）。
+
+### 在 Claude Desktop 中配置
+
+编辑 `~/Library/Application Support/Claude/claude_desktop_config.json`（macOS）：
+
+```json
+{
+  "mcpServers": {
+    "openclaw": {
+      "command": "node",
+      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "env": {
+        "OPENCLAW_URL": "ws://127.0.0.1:18789",
+        "OPENCLAW_TOKEN": "your-gateway-token"
+      }
+    }
+  }
+}
+```
+
+### 在 Cursor 中配置
+
+编辑 `~/.cursor/mcp.json`（或通过 Cursor Settings → MCP）：
+
+```json
+{
+  "mcpServers": {
+    "openclaw": {
+      "command": "node",
+      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "env": {
+        "OPENCLAW_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+### 在 VS Code Copilot Chat 中配置
+
+编辑 `.vscode/mcp.json`（工作区级）或用户 `settings.json`（`mcp.servers`）：
+
+```json
+{
+  "servers": {
+    "openclaw": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/path/to/openclaw/mcp-server/dist/index.cjs"],
+      "env": {
+        "OPENCLAW_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
 ## 开发模式
 
 ```bash
@@ -153,11 +227,9 @@ npm run build # 编译为 dist/index.cjs
 
 正常现象。MCP 协议规定 stdout 专用于 JSON-RPC，所有状态日志必须写 stderr，宿主会统一标记为 `[server stderr]`。
 
-## 发布为 npx 应用
+## 发布到 npm
 
-本包已完整配置 `bin` 入口与单文件 CJS bundle，发布后用户无需安装即可直接通过 `npx` 使用。
-
-### 1. 发布到 npm
+本包已完整配置 `bin` 入口与单文件 CJS bundle，维护者可按以下步骤发布新版本：
 
 ```bash
 # 首次登录
@@ -166,70 +238,6 @@ npm login
 # 构建并发布（已在 prepublishOnly 中自动执行 build）
 npm run release
 # 等价于：npm publish --access public
-```
-
-### 2. 用户通过 npx 使用
-
-发布成功后，所有 MCP 宿主配置中的 `node /path/to/dist/index.cjs` 均可替换为 `npx`，无需本地克隆仓库：
-
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "openclaw": {
-      "command": "npx",
-      "args": ["-y", "openclaw-mcp-server"],
-      "env": {
-        "OPENCLAW_URL": "ws://127.0.0.1:18789",
-        "OPENCLAW_TOKEN": "your-gateway-token",
-        "OPENCLAW_SESSION": "agent:xiaozhi",
-        "OPENCLAW_AGENT_NAME": "小龙虾"
-      }
-    }
-  }
-}
-```
-
-**Cursor** (`~/.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "openclaw": {
-      "command": "npx",
-      "args": ["-y", "openclaw-mcp-server"],
-      "env": {
-        "OPENCLAW_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
-
-**VS Code Copilot Chat** (`.vscode/mcp.json`):
-
-```json
-{
-  "servers": {
-    "openclaw": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "openclaw-mcp-server"],
-      "env": {
-        "OPENCLAW_TOKEN": "your-token"
-      }
-    }
-  }
-}
-```
-
-> `-y` 表示首次运行时自动安装，后续调用直接使用缓存，无额外开销。
-
-### 3. 固定版本（推荐生产使用）
-
-```json
-"args": ["-y", "openclaw-mcp-server@1.0.0"]
 ```
 
 ## License
