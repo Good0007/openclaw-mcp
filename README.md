@@ -21,8 +21,8 @@
 | 变量 | 默认值 | 说明 |
 |---|---|---|
 | `OPENCLAW_URL` | `ws://127.0.0.1:18789` | Gateway WebSocket 地址 |
-| `OPENCLAW_TOKEN` | — | 认证 token（对应 `gateway.auth.token`） |
-| `OPENCLAW_PASSWORD` | — | 认证密码（对应 `gateway.auth.password`） |
+| `OPENCLAW_TOKEN` | - | 认证 token（对应 `gateway.auth.token`） |
+| `OPENCLAW_PASSWORD` | - | 认证密码（对应 `gateway.auth.password`） |
 | `OPENCLAW_SESSION` | `main` | 默认会话 key（`main` = `agent:main:main`） |
 | `OPENCLAW_AGENT_NAME` | `OpenClaw` | 工具描述中显示的 AI 角色名称 |
 
@@ -120,6 +120,24 @@ ssh -N -L 18789:127.0.0.1:18789 user@gateway-host
 ```
 
 然后保持 `OPENCLAW_URL=ws://127.0.0.1:18789`。
+
+## 配合 OpenClaw 原生插件
+
+这个 MCP server 负责把 MCP 宿主连接到 OpenClaw Gateway。若某个能力已经有 OpenClaw 原生插件，通常应该先在 OpenClaw 内安装插件，再通过本 MCP server 让 Claude Desktop、Cursor 或 VS Code 调用 OpenClaw 会话，而不是把第三方服务密钥写入 MCP server 配置。
+
+例如需要 X/Twitter 自动化时，可以在 OpenClaw 中安装 TweetClaw：
+
+```bash
+openclaw plugins install @xquik/tweetclaw
+```
+
+TweetClaw 提供搜索 tweets、搜索 tweet replies、发 tweets、发 tweet replies、导出 followers、用户查询、媒体上传和下载、direct messages、监控 tweets、webhooks、抽奖等 X/Twitter 工作流。把 `XQUIK_API_KEY` 保存在 TweetClaw/OpenClaw 插件配置中，本 MCP server 只保留 `OPENCLAW_URL` 和 OpenClaw Gateway 凭据。
+
+参考链接：
+
+- TweetClaw: https://github.com/Xquik-dev/tweetclaw
+- npm: https://www.npmjs.com/package/@xquik/tweetclaw
+- ClawHub: https://clawhub.ai/plugins/@xquik/tweetclaw
 
 ## 可用工具
 
